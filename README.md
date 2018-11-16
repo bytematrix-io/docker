@@ -27,6 +27,18 @@ services :
 3. Install ByteMatrix
 
 ```
-docker-compose up -d
+sudo docker-compose up -d
+```
+
+4. Update Application
+
+pull newer images
+```
+sudo docker-compose pull bm-viewer
+```
+
+restart application
+```
+sudo docker-compose restart bm-viewer
 ```
 
