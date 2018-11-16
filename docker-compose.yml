@@ -4,7 +4,7 @@ services :
     image          : bytematrix/mariadb
     container_name : bm-db
     ports          :
-      - "91004:3306"
+      - "3306:3306"
     networks       :
       - local-bytematrix
     environment :
