@@ -11,7 +11,7 @@ Docker install script for ByteMatrix
 
 2. Download docker-compose.yml
 
-```
+```bash
 wget -O docker-compose.yml https://raw.githubusercontent.com/bytematrix-io/docker/master/docker-compose.yml
 ```
 
@@ -37,7 +37,7 @@ This port is used for **Bytematrix Crawler**.
 
 3. Install ByteMatrix
 
-```
+```bash
 sudo docker-compose up -d
 ```
 
@@ -50,12 +50,12 @@ sudo docker-compose up -d
 Usually, **ByteMatrix Viewer** will be changed frequently. so you can update it like below.
 
 a. pull newer images
-```
+```bash
 sudo docker-compose pull bm-viewer
 ```
 
 b. restart application
-```
+```bash
 sudo docker-compose up -d --force-recreate --no-deps bm-viewer
 ```
 
@@ -64,13 +64,24 @@ sudo docker-compose up -d --force-recreate --no-deps bm-viewer
 **ByteMatrix Viewer** log file is stacked in docker container. so you can check it like below.
 
 a. connect to **ByteMatrix Viewer** container.
-```
+```bash
 sudo docker exec -it bm-viewer /bin/bash
 ```
 
 b. tail log.
-```
+```bash
 tail -f /app/viewer/log/*.log
 ```
 
+## Control memory limitation
 
+Docker limit memory to 2048 kb in default.
+
+If application needs more memory, you should limit off docker memory.
+
+```bash
+docker-machine stop
+VBoxManage modifyvm default --cpus 2
+VBoxManage modifyvm default --memory 4096
+docker-machine start
+```
