@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapper xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:nybatis.mapper:1.2" xsi:schemaLocation="urn:nybatis.mapper:1.2 http://nybatis.github.io/schema/nybatis-mapper.xsd">
+
+  <sql id="syncToSkeleton">
+    UPDATE  /*+ Api.syncToSkeleton */
+            TB_TEST_API
+    SET     parameter  = #{parameter},
+            chain_id   = #{chainId}
+    WHERE   project_id = #{projectId}
+    AND     method     = #{method}
+    AND     url        = #{url}
+  </sql>
+
+  <sql id="getSkeleton">
+    SELECT  /*+ Api.getSkeleton */
+            project_id,
+            chain_id,
+            chain_name AS url,
+            chain_prop
+    FROM    TB_CHAIN
+    WHERE   project_id    = #{projectId}
+    AND     chain_type    = 'URL'
+    AND     complete_date = #{completeDate}
+  </sql>
+
+</mapper>

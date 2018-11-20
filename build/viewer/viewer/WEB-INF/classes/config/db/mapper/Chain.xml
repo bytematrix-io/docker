@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapper xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:nybatis.mapper:1.2" xsi:schemaLocation="urn:nybatis.mapper:1.2 http://nybatis.github.io/schema/nybatis-mapper.xsd">
+
+  <sql id="getChainsMain">
+    FROM    TB_CHAIN          A
+    <if test="#{chainIdList} != empty || #{exclusiveChainNames} != empty">
+    JOIN    TB_BATCH_COMPT    B
+            ON( A.project_id = B.project_id AND A.complete_date = B.complete_date )
+    </if>
+    <if test="#{chainIdList} != empty">
+    JOIN (
+            <if test="#{nybatis.database} == 'oracle'">
+              SELECT 'Z' AS chain_id FROM DUAL
+              <foreach key="#{chainIdList}">
+              UNION ALL SELECT #{chainIdList} AS chain_id FROM DUAL
+              </foreach>
+            </if>
+            <else>
+              SELECT 'Z' AS chain_id
+              <foreach key="#{chainIdList}">
+              UNION ALL SELECT #{chainIdList} AS chain_id
+              </foreach>
+            </else>
+    ) FILTER_CHAIN_ID
+            ON( A.chain_id = FILTER_CHAIN_ID.chain_id )
+    </if>
+    <if test="#{exclusiveChainNames} != empty">
+    LEFT OUTER JOIN (
+            <if test="#{nybatis.database} == 'oracle'">
+              SELECT 'Z' AS fecn_chain_type, 'Z' AS fecn_chain_name FROM DUAL
+              <foreach key="#{exclusiveChainNames}">
+              UNION ALL SELECT #{exclusiveChainNames.chainType}, #{exclusiveChainNames.chainName} FROM DUAL
+              </foreach>
+            </if>
+            <else>
+              SELECT 'Z' AS fecn_chain_type, 'Z' AS fecn_chain_name
+              <foreach key="#{exclusiveChainNames}">
+              UNION ALL SELECT #{exclusiveChainNames.chainType}, #{exclusiveChainNames.chainName}
+              </foreach>
+            </else>
+    ) FILTER_EXCLUSIVE_CHAIN_NAME
+            ON( A.chain_type = FILTER_EXCLUSIVE_CHAIN_NAME.fecn_chain_type AND A.chain_name = FILTER_EXCLUSIVE_CHAIN_NAME.fecn_chain_name )
+    </if>
+    WHERE   1=1
+    <if test="#{chainIdList} == empty AND #{exclusiveChainNames} == empty">
+    AND     EXISTS (
+            SELECT  1
+            FROM    TB_BATCH_COMPT
+            WHERE   project_id = A.project_id AND complete_date = A.complete_date
+    )
+    </if>
+    <if test="#{projectId} != empty">
+    AND     A.project_id IN ( #{projectId} )
+    </if>
+    <if test="#{bizId} != empty">
+      AND     A.biz_id IN ( #{bizId} )
+    </if>
+    <if test="#{chainType} != empty">
+    AND     A.chain_type IN ( #{chainType} )
+    </if>
+    <if test="#{chainName.dynamicSql} != empty">
+    AND    ( ${chainName.dynamicSql} )
+    </if>
+    <if test="#{hasChain} != empty">
+    AND     A.has_chain_yn IN ( #{hasChain} )
+    </if>
+    <if test="#{isolated} != empty">
+    AND     A.isolated IN ( #{isolated} )
+    </if>
+    <if test="#{skipYn} != empty">
+    AND     A.skip_yn IN ( #{skipYn} )
+    </if>
+    <if test="#{bizId} != empty">
+    AND     A.biz_id IN ( #{bizId} )
+    </if>
+    <if test="#{exclusiveChainNames} != empty">
+    AND     FILTER_EXCLUSIVE_CHAIN_NAME.fecn_chain_name IS NULL
+    </if>
+    <if test="#{complexityMin} != empty">
+    AND     A.cyclomatic_complexity >= #{complexityMin}
+    </if>
+    <if test="#{complexityMax} != empty">
+    AND     A.cyclomatic_complexity &lt;= #{complexityMax}
+    </if>
+  </sql>
+
+  <sql id="getChains">
+    SELECT  /*+ Chain.getChains */
+            A.project_id,
+            ( SELECT name FROM TB_PROJECT WHERE project_id = A.project_id )
+                        AS project_nm,
+            A.complete_date,
+            A.chain_id,
+            A.chain_name,
+            A.chain_type,
+            A.chain_prop,
+            A.possible_chains,
+            A.possible_chains_reverse,
+            A.skip_yn,
+            A.has_chain_yn,
+            A.has_parent_chain,
+            A.isolated,
+            A.isolated_rule_id,
+            A.cyclomatic_complexity,
+            ( SELECT isolated FROM TB_RULE_ISOLATED WHERE project_id = A.project_id AND rule_id = A.isolated_rule_id )
+                        AS isolated_rule_yn,
+            A.skippable_rule_id,
+            ( SELECT skippable FROM TB_RULE_SKIPPABLE WHERE project_id = A.project_id AND rule_id = A.skippable_rule_id )
+                        AS skippable_rule_yn,
+            A.biz_id,
+            ( SELECT biz_name FROM TB_RULE_BIZ_CHAIN WHERE biz_id = A.biz_id )
+                        AS biz_name,
+            A.source_pointer
+    <ref id="getChainsMain"></ref>
+    <if test="#{orderByName} != false">
+    ORDER BY A.project_id, A.chain_type, A.chain_name
+    </if>
+  </sql>
+
+  <sql id="getChainCount">
+    SELECT  /*+ Chain.getChainCount */
+            COUNT(1)
+    <ref id="getChainsMain"></ref>
+  </sql>
+
+  <sql id="getCalleeChainIds">
+    SELECT  /*+ Chain.getCalleeChainIds */
+            A.project_id, A.chain_id, A.chain_id_callee AS child_chain_id, A.skip_yn
+    FROM    TB_CHAIN_CALL   A
+    JOIN    TB_BATCH_COMPT  B
+            ON( A.project_id = B.project_id AND A.complete_date = B.complete_date )
+    <if test="#{projectId} != empty">
+    WHERE   A.project_id = #{projectId}
+    </if>
+  </sql>
+
+  <sql id="getCallerChainIds">
+    SELECT  /*+ Chain.getCallerChainIds */
+            A.project_id, A.chain_id, A.chain_id_caller AS child_chain_id, A.skip_yn
+    FROM    TB_CHAIN_CALLED A
+    JOIN    TB_BATCH_COMPT  B
+            ON( A.project_id = B.project_id AND A.complete_date = B.complete_date )
+    <if test="#{projectId} != empty">
+    WHERE   A.project_id = #{projectId}
+    </if>
+  </sql>
+
+  <sql id="getTestApiCandidates">
+    SELECT  /*+ Chain.getTestApiCandidates */ *
+    FROM (
+            SELECT  A.*,
+                    ( SELECT isolated FROM TB_RULE_ISOLATED WHERE project_id = A.project_id AND rule_id = A.isolated_rule_id )
+                                AS isolated_rule_yn,
+                    ( SELECT skippable FROM TB_RULE_SKIPPABLE WHERE project_id = A.project_id AND rule_id = A.skippable_rule_id )
+                                AS skippable_rule_yn,
+                    ( SELECT biz_name FROM TB_RULE_BIZ_CHAIN WHERE biz_id = A.biz_id )
+                                AS biz_name,
+                    CASE WHEN D.project_id IS NULL THEN 'N' ELSE 'Y' END
+                                AS has_test_api,
+                    D.test_case_cnt
+            FROM (
+                    SELECT  A.*,
+                            <if test="#{nybatis.database} == 'oracle' ">
+                            TO_CHAR( REGEXP_REPLACE( A.chain_prop, '^.*"methodType".*?"(.*?)".*$', '\1' ) )
+                            </if>
+                            <elseif test="#{nybatis.database} == 'mysql'">
+                            REGEXP_REPLACE( A.chain_prop, '^.*"methodType".*?"(.*?)".*$', '\1' )
+                            </elseif>
+                            <elseif test="#{nybatis.database} == 'maria'">
+                            REGEXP_REPLACE( A.chain_prop, '^.*"methodType".*?"(.*?)".*$', '\\1' )
+                            </elseif>
+                            <else>
+                            REGEXP_REPLACE( A.chain_prop, '^.*"methodType".*?"(.*?)".*$', '$1' )
+                            </else>
+                                         AS method,
+                            ( SELECT name FROM TB_PROJECT WHERE project_id = A.project_id )
+                                         AS project_nm
+                    FROM    TB_CHAIN          A
+                    WHERE   EXISTS (
+                            SELECT  1
+                            FROM    TB_BATCH_COMPT
+                            WHERE   project_id = A.project_id AND complete_date = A.complete_date
+                    )
+            ) A
+            LEFT OUTER JOIN (
+                    SELECT  A.project_id, A.url, A.method, count(B.project_id) AS test_case_cnt
+                    FROM    TB_TEST_API  A
+                    LEFT OUTER JOIN
+                            TB_TEST_CASE B
+                            ON( A.project_id = B.project_id AND A.api_id = B.api_id )
+                    GROUP BY A.project_id, A.url, A.method
+            ) D
+                    ON( A.chain_name = D.url AND A.method = D.method )
+            WHERE   1=1
+            AND     A.project_id = #{projectId}
+            AND     A.chain_type = 'URL'
+            <if test="#{chainName} != empty">
+            AND     A.chain_name LIKE #{chainNameLike}
+            </if>
+            <if test="#{methodType} != empty">
+              AND     A.method IN ( #{methodType} )
+            </if>
+    ) T
+    WHERE   1=1
+    <if test="#{hasTestCase} == 'Y'">
+    AND     has_test_api = 'Y'
+    </if>
+    <elseif test="#{hasTestCase} == 'N'">
+    AND     has_test_api = 'N'
+    </elseif>
+    ORDER BY chain_name
+  </sql>
+
+</mapper>

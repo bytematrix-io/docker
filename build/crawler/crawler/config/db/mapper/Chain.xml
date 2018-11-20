@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapper xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:nybatis.mapper:1.2" xsi:schemaLocation="urn:nybatis.mapper:1.2 http://nybatis.github.io/schema/nybatis-mapper.xsd">
+
+  <sql id="updateProperties">
+    UPDATE  /*+ Chain.updateChainIsolated */ TB_CHAIN SET
+    <group concater=",">
+      <if test="#{existYn} != empty">exist_yn = #{existYn}</if>
+      <if test="#{hasChainYn} != empty">has_chain_yn = #{hasChainYn}</if>
+      <if test="#{hasParentChain} != empty">has_parent_chain = #{hasParentChain}</if>
+      <if test="#{isolated} != empty">isolated = #{isolated}</if>
+      <if test="#{isolatedRuleId} != empty">isolated_rule_id = #{isolatedRuleId}</if>
+      <if test="#{skipYn} != empty">skip_yn = #{skipYn}</if>
+      <if test="#{skippableRuleId} != empty">skippable_rule_id = #{skippableRuleId}</if>
+      <if test="#{bizId} != empty">biz_id = #{bizId}</if>
+    </group>
+    WHERE   project_id = #{projectId}
+    <if test="#{completeDate} == empty">
+    AND     complete_date = ( SELECT complete_date FROM TB_BATCH_COMPT WHERE project_id = #{projectId} )
+    </if>
+    <else>
+    AND     complete_date = #{completeDate}
+    </else>
+    AND     chain_id = #{chainId}
+  </sql>
+
+  <sql id="getCallRelations">
+    SELECT  /*+ Chain.getCallRelations */
+            A.chain_id, A.chain_id_callee AS child_chain_id
+    FROM    TB_CHAIN_CALL   A
+    WHERE   A.project_id    = #{projectId}
+    AND     A.complete_date = #{completeDate}
+  </sql>
+
+  <sql id="getCalledRelations">
+    SELECT  /*+ Chain.getCalledRelations */
+            A.chain_id, A.chain_id_caller AS child_chain_id
+    FROM    TB_CHAIN_CALLED A
+    WHERE   A.project_id    = #{projectId}
+    AND     A.complete_date = #{completeDate}
+  </sql>
+
+</mapper>

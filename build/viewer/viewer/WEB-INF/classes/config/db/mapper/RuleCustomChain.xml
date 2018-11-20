@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapper xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:nybatis.mapper:1.2" xsi:schemaLocation="urn:nybatis.mapper:1.2 http://nybatis.github.io/schema/nybatis-mapper.xsd">
+
+  <sql id="getRulesCaller">
+    SELECT  /*+ RuleCustomChain.getRulesCaller */
+            A.*, B.name AS project_name
+    FROM    TB_RULE_CUSTOM_CHAIN_CALLER A
+    LEFT OUTER JOIN
+            TB_PROJECT                  B
+            ON( A.project_id = B.project_id )
+    WHERE   A.project_id = #{projectId}
+    <if test="#{chainType} != empty">
+    AND     A.chain_type IN ( #{chainType} )
+    </if>
+    <if test="#{chainName} != empty">
+    AND     A.chain_name LIKE #{chainNameLike}
+    </if>
+    ORDER BY A.chain_type, A.chain_name
+  </sql>
+
+  <sql id="getRulesCallee">
+    SELECT  /*+ RuleCustomChain.getRulesCallee */
+            A.*, B.name AS project_name, C.name AS callee_project_name
+    FROM    TB_RULE_CUSTOM_CHAIN_CALLEE A
+    LEFT OUTER JOIN
+            TB_PROJECT                  B
+            ON( A.project_id = B.project_id )
+    LEFT OUTER JOIN
+            TB_PROJECT                  C
+            ON( A.callee_project_id = C.project_id )
+    WHERE   A.project_id = #{projectId}
+    <if test="#{callerId} != empty">
+    AND     A.caller_id = #{callerId}
+    </if>
+    <if test="#{chainType} != empty">
+    AND     A.chain_type IN ( #{chainType} )
+    </if>
+    <if test="#{chainName} != empty">
+    AND     A.chain_name LIKE #{chainNameLike}
+    </if>
+    ORDER BY A.chain_type, A.chain_name
+  </sql>
+
+</mapper>

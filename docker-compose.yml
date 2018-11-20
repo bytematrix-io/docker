@@ -1,4 +1,4 @@
-version  : "3"
+version  : "3.2"
 services :
   bm-db :
     image          : bytematrix/mariadb
@@ -6,7 +6,7 @@ services :
     ports          :
       - "3306:3306"
     networks       :
-      - local-bytematrix
+      - local
     environment :
       MYSQL_ROOT_PASSWORD : bytematrix
       MYSQL_DATABASE      : bytematrix
@@ -15,17 +15,17 @@ services :
     healthcheck :
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
       timeout: 20s
-      retries: 10      
+      retries: 10
   bm-viewer :
     image          : bytematrix/viewer
     container_name : bm-viewer
     ports          :
       - "8080:8080"
     networks       :
-      - local-bytematrix
+      - local
     environment :
       DEFAULT_LANG : en
     depends_on  :
       - bm-db
 networks :
-  local-bytematrix :
+  local :

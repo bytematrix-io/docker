@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapper xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:nybatis.mapper:1.2" xsi:schemaLocation="urn:nybatis.mapper:1.2 http://nybatis.github.io/schema/nybatis-mapper.xsd">
+
+  <sql id="getRules">
+    SELECT  /*+ RuleIsolated.getRules */
+            *
+    FROM    TB_RULE_ISOLATED
+    WHERE   project_id = #{projectId}
+    <if test="#{chainType} != empty">
+    AND     chain_type IN ( #{chainType} )
+    </if>
+    <if test="#{isolated} != empty">
+    AND     isolated IN ( #{isolated} )
+    </if>
+    <if test="#{useYn} != empty">
+    AND     use_yn IN ( #{useYn} )
+    </if>
+    <if test="#{rule} != empty">
+    AND     rule LIKE #{ruleLike}
+    </if>
+    ORDER BY expo_ord, chain_type, rule
+  </sql>
+
+</mapper>

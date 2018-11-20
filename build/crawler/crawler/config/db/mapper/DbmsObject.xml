@@ -1,0 +1,428 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapper xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:nybatis.mapper:1.2" xsi:schemaLocation="urn:nybatis.mapper:1.2 http://nybatis.github.io/schema/nybatis-mapper.xsd">
+
+  <sql id="getFunction">
+    <if test="#{nybatis.database} == 'oracle'">
+      SELECT  /*+ DbmsObject.getFunction [oracle] */
+              CASE
+                WHEN A.type = 'TYPE BODY'    THEN 'TYPE'
+                WHEN A.type = 'PACKAGE BODY' THEN 'PACKAGE'
+                ELSE A.type
+              END AS type,
+              A.owner,
+              A.name,
+              ( SELECT  DBMS_XMLGEN.convert(
+                          XMLAGG( XMLELEMENT(tag, text || '') ORDER BY line).EXTRACT('//text()').GETCLOBVAL()
+                        , 1
+                        )
+                FROM    ALL_SOURCE
+                WHERE   TYPE = A.type AND owner = A.owner AND NAME = A.name
+              ) AS text
+      FROM (
+              SELECT  DISTINCT
+                      type,
+                      owner,
+                      NAME
+              FROM    ALL_SOURCE
+              WHERE   type NOT IN ('TYPE','TYPE BODY','PACKAGE')
+              AND     owner NOT IN ('SYS','SYSTEM','CTXSYS','ORDSYS','OLAPSYS','WMSYS','DIP','DMSYS','MDSYS','XDB','TSMSYS','EXFSYS','DBSNMP','APEX_040000','APEX_030200','APPQOSSYS','OUTLN','FLOWS_FILES')
+              <if test="#{users} != empty">
+              AND     owner IN ( #{users} )
+              </if>
+      ) A
+    </if>
+    <elseif test="#{nybatis.database} == 'mysql' OR #{nybatis.database} == 'maria' ">
+      SELECT   /*+ DbmsObject.getFunction [mysql,maria] */
+               A.type,
+               A.owner,
+               A.name,
+               CONCAT( 'CREATE ', TYPE, ' `', A.name, '` ( ', IFNULL(A.desc_param,''), ' )', IFNULL( A.desc_return, '' ), '\n', text ) AS text
+      FROM (
+              SELECT   routine_schema     AS owner,
+                       routine_name       AS name,
+                       routine_type       AS type,
+                       routine_definition AS text,
+                       (
+                          SELECT   REPLACE( GROUP_CONCAT(
+                                     CONCAT(
+                                      CASE WHEN routine_type = 'FUNCTION' THEN '' ELSE CONCAT( parameter_mode, ' ' ) END,
+                                      PARAMETER_NAME, ' ', DTD_IDENTIFIER
+                                     ), ''
+                                   ), ',', ', ' )
+                          FROM     INFORMATION_SCHEMA.PARAMETERS
+                          WHERE    specific_schema = T.routine_schema
+                          AND      specific_name   = T.routine_name
+                          AND      ordinal_position >= 1
+                          ORDER BY ordinal_position
+                       ) AS desc_param,
+                       (
+                          SELECT   CONCAT( ' RETURN ', DTD_IDENTIFIER, ' CHARSET ', CHARACTER_SET_NAME, ' COLLATE ', COLLATION_NAME )
+                          FROM     INFORMATION_SCHEMA.PARAMETERS
+                          WHERE    specific_schema = T.routine_schema
+                          AND      specific_name   = T.routine_name
+                          AND      ordinal_position = 0
+                       ) AS desc_return
+              FROM     INFORMATION_SCHEMA.ROUTINES AS T
+              WHERE    1=1
+              <if test="#{users} != empty">
+              AND      routine_schema IN ( #{users} )
+              </if>
+      ) A
+    </elseif>
+    <elseif test="#{nybatis.database} == 'h2' ">
+      SELECT  /*+ DbmsObject.getFunction [h2] */
+              'FUNCTION'    AS type,
+              alias_catalog AS owner,
+              alias_name    AS name,
+              source        AS text
+      FROM    INFORMATION_SCHEMA.FUNCTION_ALIASES
+      WHERE   alias_schema = 'PUBLIC'
+      <if test="#{users} != empty">
+      AND     alias_catalog IN ( #{users} )
+      </if>
+    </elseif>
+    <elseif test="#{nybatis.database} == 'mssql' ">
+      SELECT  /*+ DbmsObject.getFunction [mssql] */
+              routine_catalog AS owner,
+              routine_name    AS name,
+              routine_type    AS type,
+              routine_definition AS text
+      FROM    INFORMATION_SCHEMA.ROUTINES
+      WHERE   1=1
+      <if test="#{users} != empty">
+      AND     routine_catalog IN ( #{users} )
+      </if>
+    </elseif>
+    <else>
+      SELECT  /*+ DbmsObject.getFunction [else] */
+              A.*
+      FROM (  SELECT  NULL AS type, NULL AS name, NULL AS owner, NULL AS text ) A
+      WHERE   1=2
+    </else>
+  </sql>
+
+  <sql id="getView">
+    <if test="#{nybatis.database} == 'oracle'">
+      SELECT  /*+ DbmsObject.getView [oracle] */
+              view_name AS name,
+              owner     AS owner,
+              text      AS text
+      FROM    ALL_VIEWS
+      WHERE   1=1
+      AND     owner NOT IN ('SYS','SYSTEM','CTXSYS','ORDSYS','OLAPSYS','WMSYS','DIP','DMSYS','MDSYS','XDB','TSMSYS','EXFSYS','DBSNMP','APEX_040000','APEX_030200','APPQOSSYS','OUTLN','FLOWS_FILES')
+      <if test="#{users} != empty">
+      AND     owner IN ( #{users} )
+      </if>
+    </if>
+    <elseif test="#{nybatis.database} == 'mysql' OR #{nybatis.database} == 'maria' ">
+      SELECT  /*+ DbmsObject.getView [mysql,maria] */
+              table_name      AS name,
+              table_schema    AS owner,
+              view_definition AS text
+      FROM    INFORMATION_SCHEMA.VIEWS
+      WHERE   1=1
+      AND     table_schema NOT IN ('performance_schema','mysql')
+      <if test="#{users} != empty">
+      AND     table_schema IN ( #{users} )
+      </if>
+    </elseif>
+    <elseif test="#{nybatis.database} == 'h2' ">
+      SELECT  table_name      AS name,
+              table_catalog   AS owner,
+              view_definition AS text
+      FROM    INFORMATION_SCHEMA.VIEWS
+      WHERE   table_schema = 'PUBLIC'
+      <if test="#{users} != empty">
+      AND     table_catalog IN ( #{users} )
+      </if>
+    </elseif>
+    <elseif test="#{nybatis.database} == 'mssql' ">
+      SELECT  /*+ DbmsObject.getView [mysql,maria] */
+              table_name      AS name,
+              table_schema    AS owner,
+              view_definition AS text
+      FROM    INFORMATION_SCHEMA.VIEWS
+      <if test="#{users} != empty">
+      WHERE   table_catalog IN ( #{users} )
+      </if>
+    </elseif>
+    <else>
+      SELECT  /*+ DbmsObject.getView [else] */
+              A.*
+      FROM (  SELECT  NULL AS name, NULL AS owner, NULL AS text ) A
+      WHERE   1=2
+    </else>
+  </sql>
+
+  <sql id="getTable">
+    <if test="#{nybatis.database} == 'oracle'">
+      SELECT  /*+ DbmsObject.getTable [oracle] */
+              table_name AS name,
+              LISTAGG( owner,',') WITHIN GROUP (ORDER BY owner ) AS owner
+      FROM    ALL_TABLES
+      WHERE   1=1
+      <if test="#{users} != empty">
+      AND     owner IN ( #{users} )
+      </if>
+      AND     owner NOT IN ('SYS','SYSTEM','CTXSYS','ORDSYS','OLAPSYS','WMSYS','DIP','DMSYS','MDSYS','XDB','TSMSYS','EXFSYS','DBSNMP','APEX_040000','APEX_030200','APPQOSSYS','OUTLN','FLOWS_FILES')
+      GROUP BY table_name
+      ORDER BY table_name
+    </if>
+    <elseif test="#{nybatis.database} == 'mysql' OR #{nybatis.database} == 'maria' ">
+      SELECT  /*+ DbmsObject.getTable [mysql,maria] */
+              table_name AS name,
+              GROUP_CONCAT( table_schema,'' ) AS owner
+      FROM    INFORMATION_SCHEMA.tables
+      WHERE   table_type   = 'BASE TABLE'
+      AND     table_schema NOT IN ('performance_schema','mysql')
+      <if test="#{users} != empty">
+      AND     table_schema IN ( #{users} )
+      </if>
+      GROUP BY table_name
+      ORDER BY table_name
+    </elseif>
+    <elseif test="#{nybatis.database} == 'mssql' ">
+      SELECT  /*+ DbmsObject.getTable [mssql] */
+              table_name    AS name,
+              table_catalog AS owner
+      FROM    INFORMATION_SCHEMA.TABLES
+      WHERE   table_type   = 'BASE TABLE'
+      <if test="#{users} != empty">
+      AND     table_catalog IN ( #{users} )
+      </if>
+    </elseif>
+    <elseif test="#{nybatis.database} == 'h2' ">
+      SELECT  /*+ DbmsObject.getTable [h2] */
+              table_name    AS name,
+              table_catalog AS owner
+      FROM    INFORMATION_SCHEMA.TABLES
+      WHERE   table_schema = 'PUBLIC'
+      AND     table_type   = 'TABLE'
+      <if test="#{users} != empty">
+      AND     table_catalog IN ( #{users} )
+      </if>
+    </elseif>
+    <else>
+      SELECT  /*+ DbmsObject.getTable [else] */
+              A.*
+      FROM (  SELECT  NULL AS name, NULL AS owner ) A
+      WHERE   1=2
+    </else>
+  </sql>
+
+  <sql id="getSequence">
+    <if test="#{nybatis.database} == 'oracle'">
+      SELECT  /*+ DbmsObject.getSequence [oracle] */
+              sequence_name  AS name,
+              sequence_owner AS owner,
+              'CREATE SEQUENCE '   || sequence_name
+              || CHR(10) || 'minvalue '     || min_value
+              || CHR(10) || 'maxvalue '     || max_value
+              || CHR(10) || 'start with '   || last_number
+              || CHR(10) || 'increment by ' || increment_by
+              || CHR(10) || 'cache '        || cache_size
+                             AS text
+      FROM    ALL_SEQUENCES
+      WHERE   1=1
+      AND     sequence_owner NOT IN ('SYS','SYSTEM','CTXSYS','ORDSYS','OLAPSYS','WMSYS','DIP','DMSYS','MDSYS','XDB','TSMSYS','EXFSYS','DBSNMP','APEX_040000','APEX_030200','APPQOSSYS','OUTLN','FLOWS_FILES')
+      <if test="#{users} != empty">
+      AND     sequence_owner IN ( #{users} )
+      </if>
+    </if>
+    <elseif test="#{nybatis.database} == 'h2' ">
+      SELECT  /*+ DbmsObject.getSequence [h2] */
+              sequence_name    AS name,
+              sequence_catalog AS owner,
+              'CREATE SEQUENCE ' || sequence_name
+              || CHAR(10) || 'minvalue '     || min_value
+              || CHAR(10) || 'maxvalue '     || min_value
+              || CHAR(10) || 'start with '   || CURRENT_VALUE
+              || CHAR(10) || 'increment by ' || increment
+              || CHAR(10) || 'cache '        || cache
+                               AS text
+      FROM    INFORMATION_SCHEMA.SEQUENCES
+      WHERE   sequence_schema = 'PUBLIC'
+      <if test="#{users} != empty">
+      AND     sequence_catalog IN ( #{users} )
+      </if>
+    </elseif>
+    <elseif test="#{nybatis.database} == 'mssql' ">
+      SELECT  /*+ DbmsObject.getSequence [mssql] */
+              sequence_name    AS name,
+              sequence_catalog AS owner,
+              CONCAT( 'CREATE SEQUENCE ' , sequence_name
+              ,CHAR(10) , 'minvalue '     , CAST( minimum_value AS VARCHAR )
+              ,CHAR(10) , 'maxvalue '     , CAST( maximum_value AS VARCHAR )
+              ,CHAR(10) , 'start with '   , CAST( start_value   AS VARCHAR )
+              ,CHAR(10) , 'increment by ' , CAST( increment     AS VARCHAR )
+              )                AS text
+      FROM    INFORMATION_SCHEMA.SEQUENCES
+      WHERE   1=1
+      <if test="#{users} != empty">
+      AND     sequence_catalog IN ( #{users} )
+      </if>
+    </elseif>
+    <else>
+      SELECT  /*+ DbmsObject.getSequence [else] */
+              A.*
+      FROM (  SELECT  NULL AS name ) A
+      WHERE   1=2
+    </else>
+  </sql>
+
+  <sql id="getTableColumn">
+    <if test="#{nybatis.database} == 'oracle'">
+      SELECT   /*+ DbmsObject.getTableColumn [oracle] */
+               table_name,
+               column_name,
+               data_type,
+               data_length,
+               nullable,
+               data_default
+      FROM     ALL_TAB_COLUMNS
+      WHERE    ( 0, table_name ) IN ( <foreach key="#{tables}" concater=",">(0,#{tables})</foreach> )
+      ORDER BY table_name, column_id
+    </if>
+    <elseif test="#{nybatis.database} == 'mysql' OR #{nybatis.database} == 'maria' ">
+      SELECT  /*+ DbmsObject.getTableColumn [mysql,maria] */
+              table_name,
+              column_name,
+              data_type,
+              character_maximum_length AS data_length,
+              CASE WHEN is_nullable = 'NO' THEN 'N' ELSE 'Y' END
+                                       AS nullable,
+              column_default           AS data_default
+      FROM    INFORMATION_SCHEMA.COLUMNS
+      WHERE   table_schema != 'INFORMATION_SCHEMA'
+      AND     table_name   IN ( #{tables} )
+      <if test="#{users} != empty">
+      AND     table_schema IN ( #{users} )
+      </if>
+      ORDER BY table_name, ordinal_position
+    </elseif>
+    <elseif test="#{nybatis.database} == 'mssql' ">
+      SELECT  /*+ DbmsObject.getTableColumn [mssql] */
+              table_name,
+              column_name,
+              data_type,
+              character_maximum_length AS data_length,
+              CASE WHEN is_nullable = 'NO' THEN 'N' ELSE 'Y' END
+                                       AS nullable,
+              column_default           AS data_default
+      FROM    INFORMATION_SCHEMA.COLUMNS
+      WHERE   table_schema != 'INFORMATION_SCHEMA'
+      AND     table_name IN ( #{tables} )
+      <if test="#{users} != empty">
+      AND     table_catalog IN ( #{users} )
+      </if>
+      ORDER BY table_name, ordinal_position
+    </elseif>
+    <elseif test="#{nybatis.database} == 'h2' ">
+      SELECT  /*+ DbmsObject.getTableColumn [h2] */
+              table_name,
+              column_name,
+              type_name                AS data_type,
+              character_maximum_length AS data_length,
+              CASE WHEN is_nullable = 'NO' THEN 'N' ELSE 'Y' END
+                                       AS nullable,
+              column_default           AS data_default
+      FROM    INFORMATION_SCHEMA.COLUMNS
+      WHERE   table_schema = 'PUBLIC'
+      AND     table_name IN ( #{tables} )
+      <if test="#{users} != empty">
+      AND     table_catalog IN ( #{users} )
+      </if>
+      ORDER BY table_name, ordinal_position
+    </elseif>
+    <else>
+      SELECT  /*+ DbmsObject.getTableColumn [else] */
+              A.*
+      FROM (  SELECT NULL AS table_name ) A
+      WHERE   1=2
+    </else>
+  </sql>
+
+  <sql id="getTableIndex">
+    <if test="#{nybatis.database} == 'oracle'">
+      SELECT  /*+ DbmsObject.getTableIndex [oracle] */
+              table_name,
+              index_name,
+              column_name,
+              CASE WHEN descend = 'ASC' THEN '' ELSE 'DESC' END AS descend,
+              CASE
+                WHEN ( SELECT constraint_type FROM ALL_CONSTRAINTS WHERE table_name = A.table_name AND constraint_name = A.index_name AND ROWNUM = 1 ) = 'P' THEN 'Y'
+                ELSE ''
+              END AS pk
+      FROM    ALL_IND_COLUMNS A
+      WHERE   ( 0, table_name ) IN ( <foreach key="#{tables}" concater=",">(0,#{tables})</foreach> )
+      ORDER BY table_name, index_name, column_position
+    </if>
+    <elseif test="#{nybatis.database} == 'mysql' OR #{nybatis.database} == 'maria' ">
+      SELECT  /*+ DbmsObject.getTableIndex [mysql,maria] */
+              table_name,
+              index_name,
+              column_name,
+              CASE WHEN A.`COLLATION` = 'A' OR A.`COLLATION` IS NULL THEN '' ELSE 'DESC' END
+                  AS descend,
+              CASE
+                WHEN
+                  ( SELECT constraint_type
+                    FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
+                    WHERE constraint_catalog = A.table_catalog AND constraint_schema = A.table_schema AND table_name = A.table_name AND constraint_name = A.index_name
+                  ) = 'PRIMARY KEY' THEN 'Y'
+                ELSE ''
+              END AS pk
+      FROM    INFORMATION_SCHEMA.STATISTICS A
+      WHERE   table_name IN ( #{tables} )
+      <if test="#{users} != empty">
+      AND     table_schema IN ( #{users} )
+      </if>
+      ORDER BY A.table_name, A.index_name, A.seq_in_index
+    </elseif>
+    <elseif test="#{nybatis.database} == 'mssql' ">
+      SELECT  /*+ DbmsObject.getTableIndex [mssql] */
+              TAB.name  AS table_name,
+              IND.name  AS index_name,
+              COL.name  AS column_name,
+              CASE WHEN IC.is_descending_key = 1 THEN 'DESC' ELSE '' END
+                        AS descend,
+              CASE WHEN IND.is_primary_key = 1 THEN 'Y' ELSE '' END
+                        AS pk
+      FROM    SYS.INDEXES       IND
+      JOIN    SYS.INDEX_COLUMNS IC
+              ON( IND.object_id = IC.object_id and IND.index_id = IC.index_id )
+      JOIN    SYS.COLUMNS       COL
+              ON( IC.object_id = COL.object_id and IC.column_id = COL.column_id )
+      JOIN    SYS.TABLES        TAB
+              ON( IND.object_id = TAB.object_id )
+      WHERE   TAB.is_ms_shipped = 0
+      AND     TAB.name IN ( #{tables} )
+      ORDER BY TAB.name, IND.name, IND.index_id, IC.index_column_id
+    </elseif>
+    <elseif test="#{nybatis.database} == 'h2' ">
+      SELECT  /*+ DbmsObject.getTableIndex [h2] */
+              table_name,
+              CASE WHEN constraint_name IS NOT NULL THEN constraint_name ELSE index_name END
+                  AS index_name,
+              column_name,
+              CASE WHEN asc_or_desc = 'A' THEN '' ELSE 'DESC' END
+                  AS descend,
+              CASE WHEN PRIMARY_KEY = TRUE THEN 'Y' ELSE '' END
+                  AS pk
+      FROM    INFORMATION_SCHEMA.INDEXES
+      WHERE   table_schema = 'PUBLIC'
+      AND     table_name IN ( #{tables} )
+      <if test="#{users} != empty">
+      AND     table_catalog IN ( #{users} )
+      </if>
+      ORDER BY table_name, index_name, ordinal_position
+    </elseif>
+    <else>
+      SELECT  /*+ DbmsObject.getTableIndex [else] */
+              A.*
+      FROM (  SELECT NULL AS table_name ) A
+      WHERE   1=2
+    </else>
+  </sql>
+
+</mapper>

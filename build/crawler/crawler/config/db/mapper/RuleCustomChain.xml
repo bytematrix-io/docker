@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapper xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:nybatis.mapper:1.2" xsi:schemaLocation="urn:nybatis.mapper:1.2 http://nybatis.github.io/schema/nybatis-mapper.xsd">
+
+  <sql id="getExternalRulesCallee">
+    SELECT  /*+ RuleCustomChain.getExternalRulesCallee */
+            C.*,
+            A.complete_date,
+            A.chain_id
+    FROM    TB_CHAIN        A
+    JOIN    TB_BATCH_COMPT  B
+        ON( A.project_id = B.project_id AND A.complete_date = B.complete_date )
+    RIGHT OUTER JOIN
+            TB_RULE_CUSTOM_CHAIN_CALLEE C
+            ON(   A.project_id = C.callee_project_id
+            <if test="#{nybatis.databas} =='oracle' || #{nybatis.databas} =='h2' ">
+              AND A.chain_type LIKE C.chain_type || '%'
+            </if>
+            <else>
+              AND A.chain_type LIKE CONCAT( C.chain_type, '%' )
+            </else>
+              AND A.chain_name = C.chain_name )
+    WHERE   C.project_id = #{projectId}
+    AND     C.project_id != C.callee_project_id
+  </sql>
+
+</mapper>

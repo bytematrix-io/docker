@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapper xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:nybatis.mapper:1.2" xsi:schemaLocation="urn:nybatis.mapper:1.2 http://nybatis.github.io/schema/nybatis-mapper.xsd">
+
+  <sql id="isolated">
+    SELECT  /*+ Report.isolated */
+            biz_id,
+            chain_type,
+            isolated,
+            COUNT(1)        AS chain_cnt,
+            SUM(call_cnt)   AS call_cnt,
+            SUM(caller_cnt) AS caller_cnt,
+            SUM(loc)        AS loc
+    FROM (
+            SELECT  ( SELECT count(1) FROM TB_CHAIN_CALL   WHERE PROJECT_ID = A.PROJECT_ID AND COMPLETE_DATE = A.COMPLETE_DATE AND CHAIN_ID = A.CHAIN_ID ) AS call_cnt,
+                    ( SELECT count(1) FROM TB_CHAIN_CALLED WHERE PROJECT_ID = A.PROJECT_ID AND COMPLETE_DATE = A.COMPLETE_DATE AND CHAIN_ID = A.CHAIN_ID ) AS caller_cnt,
+                    biz_id, chain_type, isolated, loc
+            FROM    TB_CHAIN A
+            WHERE   A.project_id    = #{projectId}
+            AND     A.complete_date = #{completeDate}
+            AND     A.skip_yn       = 'N'
+    ) A
+    GROUP BY biz_id, chain_type, isolated
+  </sql>
+
+  <sql id="deleteIsolated">
+    DELETE  /*+ Report.deleteIsolated */
+    FROM    TB_REPORT_ISOLATED
+    WHERE   project_id = #{projectId}
+    AND     (
+        complete_date =  #{currentDate} OR
+        complete_date &lt;= #{beforeDate}
+    )
+  </sql>
+
+  <sql id="deleteClass">
+    DELETE  /*+ Report.deleteClass */
+    FROM    TB_REPORT_CLASS
+    WHERE   project_id = #{projectId}
+    AND     (
+        complete_date =  #{currentDate} OR
+        complete_date &lt;= #{beforeDate}
+    )
+  </sql>
+
+  <sql id="deleteClassRaw">
+    DELETE  /*+ Report.deleteClassRaw */
+    FROM    TB_REPORT_CLASS_RAW
+    WHERE   project_id = #{projectId}
+  </sql>
+
+  <sql id="deleteComplexity">
+    DELETE  /*+ Report.deleteComplexity */
+    FROM    TB_REPORT_COMPLEX
+    WHERE   project_id = #{projectId}
+    AND     (
+        complete_date =  #{currentDate} OR
+        complete_date &lt;= #{beforeDate}
+    )
+  </sql>
+
+  <sql id="deleteRecycle">
+    DELETE  /*+ Report.deleteRecycle */
+    FROM    TB_REPORT_RECYCLE
+    WHERE   project_id = #{projectId}
+    AND     (
+        complete_date =  #{currentDate} OR
+        complete_date &lt;= #{beforeDate}
+    )
+  </sql>
+
+  <sql id="deleteDbResource">
+    DELETE  /*+ Report.deleteDbResource */
+    FROM    TB_REPORT_DB_RESOURCE
+    WHERE   project_id = #{projectId}
+    AND     (
+        complete_date =  #{currentDate} OR
+        complete_date &lt;= #{beforeDate}
+    )
+  </sql>
+
+</mapper>

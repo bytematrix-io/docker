@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapper xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:nybatis.mapper:1.2" xsi:schemaLocation="urn:nybatis.mapper:1.2 http://nybatis.github.io/schema/nybatis-mapper.xsd">
+
+  <sql id="getRuleBizChain">
+    SELECT  /*+ Setting.getRuleBizChain */
+            B.project_id,
+            A.biz_id,
+            A.biz_name,
+            B.chain_type,
+            B.rule
+    FROM	  TB_RULE_BIZ_CHAIN        A
+    JOIN    TB_RULE_BIZ_CHAIN_DETAIL B
+            ON( A.BIZ_ID = B.BIZ_ID )
+    WHERE   B.project_id = #{projectId}
+    <if test="#{chainType} != empty">
+    AND     B.chain_type = #{chainType}
+    </if>
+    AND     A.use_yn = 'Y'
+    AND     B.use_yn = 'Y'
+    ORDER BY B.expo_ord, B.chain_type, B.rule
+  </sql>
+
+  <sql id="getRuleIsolated">
+    SELECT  /*+ Setting.getRuleIsolated */
+            project_id,
+            rule_id,
+            chain_type,
+            rule,
+            isolated
+    FROM    TB_RULE_ISOLATED
+    WHERE   project_id = #{projectId}
+    <if test="#{chainType} != empty">
+    AND     chain_type = #{chainType}
+    </if>
+    AND     use_yn = 'Y'
+    AND     isolated != '-'
+    ORDER BY expo_ord, chain_type, rule
+  </sql>
+
+  <sql id="getRuleSkippable">
+    SELECT  /*+ Setting.getRuleSkippable */
+            project_id,
+            rule_id,
+            chain_type,
+            rule,
+            skippable
+    FROM    TB_RULE_SKIPPABLE
+    WHERE   project_id = #{projectId}
+    <if test="#{chainType} != empty">
+    AND     chain_type = #{chainType}
+    </if>
+    AND     use_yn = 'Y'
+    AND     skippable != '-'
+    ORDER BY expo_ord, chain_type, rule
+  </sql>
+
+  <sql id="getRuleSkippableParam">
+    SELECT  /*+ Setting.getRuleSkippableParam */
+            project_id,
+            rule_id,
+            rule,
+            skippable
+    FROM    TB_RULE_SKIP_PARAM
+    WHERE   project_id = #{projectId}
+    AND     use_yn = 'Y'
+    AND     skippable != '-'
+    ORDER BY expo_ord, rule
+  </sql>
+
+  <sql id="getRuleCustomChain">
+    SELECT  /*+ Setting.getRuleCustomChain */
+            A.project_id        AS caller_project_id,
+            A.chain_type        AS caller_chain_type,
+            A.chain_name        AS caller_chain_name,
+            ( SELECT chain_id FROM TB_CHAIN WHERE project_id = A.project_id AND complete_date = #{completeDate} AND chain_name = A.chain_name AND chain_type LIKE A.chain_type )
+                                AS caller_chain_id,
+            B.callee_project_id AS callee_project_id,
+            B.chain_type        AS callee_chain_type,
+            B.chain_name        AS callee_chain_name,
+            ( SELECT chain_id FROM TB_CHAIN WHERE project_id = B.callee_project_id AND complete_date = #{completeDate} AND chain_name = B.chain_name AND chain_type LIKE B.chain_type )
+                                AS callee_chain_id,
+            B.work_type         AS callee_work_type
+    FROM    TB_RULE_CUSTOM_CHAIN_CALLER A
+    JOIN    TB_RULE_CUSTOM_CHAIN_CALLEE B
+            ON( A.project_id = B.project_id AND A.caller_id = B.caller_id )
+    WHERE   A.project_id = #{projectId}
+    AND     A.use_yn = 'Y'
+    AND     B.use_yn = 'Y'
+    AND     B.work_type IN ('CONNECT','CUT')
+    <if test="#{withinSameProject} == true">
+    AND     A.project_id = B.callee_project_id
+    </if>
+    ORDER BY A.project_id, A.chain_type, A.chain_name
+  </sql>
+
+</mapper>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapper xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:nybatis.mapper:1.2" xsi:schemaLocation="urn:nybatis.mapper:1.2 http://nybatis.github.io/schema/nybatis-mapper.xsd">
+
+  <sql id="retrieveMenus">
+    SELECT  /*+ Menu.retrieveMenus */
+            A.menu_id, menu_level, menu_url
+    FROM    TB_MENU  A
+    JOIN (
+            SELECT  DISTINCT menu_id
+            FROM    TB_AUTH_MENU
+            WHERE   AUTH_ID IN ( #{authIds} )
+    ) B
+            ON( A.menu_id = B.menu_id )
+    WHERE   A.visible = 'Y'
+    ORDER BY menu_id
+  </sql>
+  
+</mapper>

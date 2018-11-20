@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapper xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:nybatis.mapper:1.2" xsi:schemaLocation="urn:nybatis.mapper:1.2 http://nybatis.github.io/schema/nybatis-mapper.xsd">
+
+  <sql id="find">
+    SELECT  /*+ CrudMatrix.find */
+            A.project_id,
+            ( SELECT name FROM TB_PROJECT WHERE project_id = A.project_id )
+                        AS project_nm,
+            A.chain_id,
+            A.chain_name,
+            A.chain_type,
+            A.db_resource_id,
+            A.db_resource_name,
+            A.db_resource_type,
+            A.isolated,
+            A.crud,
+            A.biz_id,
+            ( SELECT biz_name FROM TB_RULE_BIZ_CHAIN WHERE biz_id = A.biz_id )
+                        AS biz_name
+    FROM    TB_CRUD_MATRIX  A
+    WHERE   EXISTS (
+            SELECT  1
+            FROM    TB_BATCH_COMPT
+            WHERE   project_id = A.project_id AND complete_date = A.complete_date
+    )
+    <if test="#{projectId} != empty">
+      AND   A.project_id IN ( #{projectId} )
+    </if>
+    <if test="#{bizId} != empty">
+      AND   A.biz_id IN ( #{bizId} )
+    </if>
+    <if test="#{chainType} != empty">
+      AND   A.chain_type IN ( #{chainType} )
+    </if>
+    <if test="#{dbResourceType} != empty">
+      AND   A.db_resource_type IN ( #{dbResourceType} )
+    </if>
+    <if test="#{chain.dynamicSql} != empty">
+      AND ( ${chain.dynamicSql} )
+    </if>
+    <if test="#{dbResource.dynamicSql} != empty">
+      AND ( ${dbResource.dynamicSql} )
+    </if>
+  </sql>
+
+</mapper>

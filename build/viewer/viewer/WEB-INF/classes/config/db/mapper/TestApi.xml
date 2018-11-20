@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapper xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:nybatis.mapper:1.2" xsi:schemaLocation="urn:nybatis.mapper:1.2 http://nybatis.github.io/schema/nybatis-mapper.xsd">
+
+  <sql id="getApiMeta">
+    SELECT  /*+ TestApi.getApiMeta */
+            A.*,
+            ( SELECT name FROM TB_PROJECT WHERE project_id = A.project_id )
+                       AS project_nm,
+            ( SELECT biz_name FROM TB_RULE_BIZ_CHAIN WHERE biz_id = A.biz_id )
+                       AS biz_name,
+            D.cnt      AS test_case_cnt
+    FROM    TB_TEST_API       A
+    LEFT OUTER JOIN (
+            SELECT  project_id, api_id, COUNT(1) AS cnt
+            FROM    TB_TEST_CASE
+            GROUP BY project_id, api_id
+    ) D
+            ON( A.project_id = D.project_id AND A.api_id = D.api_id )
+    WHERE   A.project_id = #{projectId}
+    <if test="#{apiId} != empty">
+    AND     A.api_id = #{apiId}
+    </if>
+    <if test="#{apiName} != empty">
+    AND     A.api_name LIKE #{apiName}
+    </if>
+    <if test="#{url} != empty">
+    AND     A.url LIKE #{url}
+    </if>
+    <if test="#{bizId} != empty">
+    AND     A.biz_id IN ( #{bizId} )
+    </if>
+    <if test="#{nybatis.database} == 'oracle' || #{nybatis.database} == 'h2' ">
+    ORDER BY A.api_name NULLS LAST
+    </if>
+    <elseif test="#{nybatis.database} == 'mysql' || #{nybatis.database} == 'maria' ">
+    ORDER BY A.api_name IS NULL, A.api_name
+    </elseif>
+    <else>
+    ORDER BY A.api_name
+    </else>
+  </sql>
+
+</mapper>

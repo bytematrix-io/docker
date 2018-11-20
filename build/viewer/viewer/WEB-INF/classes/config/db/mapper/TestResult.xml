@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapper xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:nybatis.mapper:1.2" xsi:schemaLocation="urn:nybatis.mapper:1.2 http://nybatis.github.io/schema/nybatis-mapper.xsd">
+
+  <sql id="getCatalog">
+    SELECT  /*+ TestResult.getCatalog */
+            *
+    FROM (
+            SELECT  A.project_id,
+                    A.api_id,
+                    A.test_case_id,
+                  <if test="#{nybatis.database} =='oracle' || #{nybatis.database} =='h2' ">
+                    B.api_name || ' : ' || A.case_name AS test_case_name,
+                  </if>
+                  <else>
+                    CONCAT( B.api_name, ' : ', A.case_name ) AS test_case_name,
+                  </else>
+                    B.biz_id,
+                    ( SELECT biz_name FROM TB_RULE_BIZ_CHAIN WHERE biz_id = B.biz_id )
+                        AS biz_name,
+                    A.expo_ord,
+                    A.method,
+                    A.url,
+                    A.reg_id,
+                    A.reg_dt,
+                    A.upd_id,
+                    A.upd_dt,
+                    C.env_id,
+                    C.use_yn,
+                    C.success
+            FROM    TB_TEST_CASE      A
+            JOIN    TB_TEST_API       B
+                    ON( A.project_id = B.project_id AND A.api_id = B.api_id )
+            LEFT OUTER JOIN
+                    TB_TEST_RESULT    C
+                    ON( A.project_id = C.project_id AND A.test_case_id = C.test_case_id AND C.env_id = #{envId} )
+            WHERE   A.project_id = #{projectId}
+    ) T
+    WHERE   1=1
+    <if test="#{testCaseName} != empty">
+    AND    test_case_name LIKE #{testCaseNameLike}
+    </if>
+    <if test="#{bizId} != empty">
+    AND    biz_id IN ( #{bizId} )
+    </if>
+    ORDER BY expo_ord DESC
+  </sql>
+
+</mapper>

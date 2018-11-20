@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapper xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:nybatis.mapper:1.2" xsi:schemaLocation="urn:nybatis.mapper:1.2 http://nybatis.github.io/schema/nybatis-mapper.xsd">
+
+  <sql id="updateExpoOrd">
+    UPDATE /*+ TestCase.updateExpoOrd */ TB_TEST_CASE
+    SET    expo_ord = #{expoOrd}
+    WHERE  test_case_id = #{testCaseId}
+  </sql>
+
+</mapper>

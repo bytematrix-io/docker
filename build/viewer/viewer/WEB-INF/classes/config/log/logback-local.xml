@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+  <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="org.nybatis.core.log.layout.NLoggerPatternLayoutEncoder">
+      <pattern>%d{HH:mm:ss.SSS} %yellow(%-5level) %50(\(%F:%L\))</pattern>
+    </encoder>
+  </appender>
+
+  <appender name="consoleJsp" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="org.nybatis.core.log.layout.NLoggerPatternLayoutEncoder">
+      <pattern>%d{HH:mm:ss.SSS} %yellow(%-5level) %cyan([%48logger{48}])</pattern>
+    </encoder>
+  </appender>
+
+  <appender name="consoleSql" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="org.nybatis.core.log.layout.NLoggerPatternLayoutEncoder">
+    </encoder>
+  </appender>
+
+  <logger name="com.bytematrix" level="debug">
+    <appender-ref ref="console" />
+  </logger>
+
+  <logger name="org.apache.jsp" level="debug">
+    <appender-ref ref="consoleJsp" />
+  </logger>
+
+  <logger name="org.nybatis" level="debug">
+    <appender-ref ref="console" />
+  </logger>
+
+  <logger name="nybatis.sql" level="debug" additivity="false">
+    <appender-ref ref="consoleSql" />
+  </logger>
+
+  <logger name="nybatis.batch" level="debug" additivity="false">
+    <appender-ref ref="consoleSql" />
+  </logger>
+
+</configuration>

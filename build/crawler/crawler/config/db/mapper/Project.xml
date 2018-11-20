@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapper xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:nybatis.mapper:1.2" xsi:schemaLocation="urn:nybatis.mapper:1.2 http://nybatis.github.io/schema/nybatis-mapper.xsd">
+
+  <sql id="getSequencedProjects">
+    SELECT  /*+ Project.getSequencedProjects */
+            A.seq, B.*
+    FROM    TB_PROJECT_EXE_SEQ A
+    JOIN    TB_PROJECT B
+            ON( A.project_id = B.project_id )
+    WHERE   A.enabled = 'Y'
+    ORDER BY SEQ
+  </sql>
+
+</mapper>

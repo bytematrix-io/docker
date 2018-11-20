@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+  <appender name="consoleJava" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="org.nybatis.core.log.layout.NLoggerPatternLayoutEncoder">
+      <pattern>%d{HH:mm:ss.SSS} %magenta([tx:%36X{txId}]) %yellow(%-5level) %blue(%50(\(%F:%L\))) %green(%X{userId}) </pattern>
+    </encoder>
+  </appender>
+
+  <appender name="consoleSql" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="org.nybatis.core.log.layout.NLoggerPatternLayoutEncoder">
+      <pattern>%d{HH:mm:ss.SSS} %magenta([tx:%36X{txId}]) %yellow(%-5level) %blue(\(%F:%L\)) %green(%X{userId}) </pattern>
+    </encoder>
+  </appender>
+
+  <appender name="consoleJsp" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="org.nybatis.core.log.layout.NLoggerPatternLayoutEncoder">
+      <pattern>%d{HH:mm:ss.SSS} %magenta([tx:%36X{txId}]) %yellow(%-5level) %blue([%48logger{48}]) %green(%X{userId}) </pattern>
+    </encoder>
+  </appender>
+
+  <appender name="fileJava" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <File>./log/java.log</File>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <FileNamePattern>./log/backup/java_%d{yyyyMMdd_HH}</FileNamePattern>
+      <maxHistory>30</maxHistory>
+    </rollingPolicy>
+    <encoder class="org.nybatis.core.log.layout.NLoggerPatternLayoutEncoder">
+      <pattern>%d{HH:mm:ss.SSS} %magenta([tx:%36X{txId}]) %yellow(%-5level) %blue(\(%F:%L\)) %green(%X{userId}) </pattern>
+    </encoder>
+  </appender>
+
+  <appender name="fileSql" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <File>./log/sql.log</File>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <FileNamePattern>./log/backup/sql_%d{yyyyMMdd_HH}</FileNamePattern>
+      <maxHistory>30</maxHistory>
+    </rollingPolicy>
+    <encoder class="org.nybatis.core.log.layout.NLoggerPatternLayoutEncoder">
+      <pattern>%d{HH:mm:ss.SSS} %magenta([tx:%36X{txId}]) %yellow(%-5level) %blue(\(%F:%L\)) %green(%X{userId}) </pattern>
+    </encoder>
+  </appender>
+
+  <appender name="fileJsp" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <File>./log/jsp.log</File>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <FileNamePattern>./log/backup/jsp_%d{yyyyMMdd_HH}</FileNamePattern>
+      <maxHistory>30</maxHistory>
+    </rollingPolicy>
+    <encoder class="org.nybatis.core.log.layout.NLoggerPatternLayoutEncoder">
+      <pattern>%d{HH:mm:ss.SSS} %magenta([tx:%36X{txId}]) %yellow(%-5level) %blue([%48logger{48}]) %green(%X{userId}) </pattern>
+    </encoder>
+  </appender>
+
+  <logger name="com.bytematrix" level="debug">
+    <appender-ref ref="fileJava" />
+  </logger>
+
+  <logger name="org.apache.jsp" level="debug">
+    <appender-ref ref="fileJsp" />
+  </logger>
+
+  <logger name="org.nybatis" level="debug">
+    <appender-ref ref="fileJava" />
+  </logger>
+
+  <logger name="nybatis.sql" level="debug" additivity="false">
+    <appender-ref ref="fileSql" />
+  </logger>
+
+  <logger name="nybatis.batch" level="debug" additivity="false">
+    <appender-ref ref="fileSql" />
+  </logger>
+
+</configuration>

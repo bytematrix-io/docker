@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+  <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="org.nybatis.core.log.layout.NLoggerPatternLayoutEncoder">
+      <pattern>%d{HH:mm:ss.SSS} %highlight(%-5level) %50(\(%F:%L\))</pattern>
+    </encoder>
+  </appender>
+
+  <appender name="consoleSql" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="org.nybatis.core.log.layout.NLoggerPatternLayoutEncoder">
+    </encoder>
+  </appender>
+
+  <logger name="com.bytematrix" level="debug">
+    <appender-ref ref="console" />
+  </logger>
+
+  <logger name="com.bytematrix.core.jvm" level="debug">
+    <appender-ref ref="console" />
+  </logger>
+
+  <logger name="sample" level="debug">
+    <appender-ref ref="console" />
+  </logger>
+
+  <logger name="sampletest" level="debug">
+    <appender-ref ref="console" />
+  </logger>
+
+  <logger name="org.nybatis" level="info">
+    <appender-ref ref="console" />
+  </logger>
+
+  <!-- custom chain -->
+  <logger name="com.bytematrix.core.module.inspector.custom.ChainNameFinder" level="debug" additivity="false">
+    <appender-ref ref="console" />
+  </logger>
+
+  <logger name="nybatis.sql" level="error" additivity="false">
+    <appender-ref ref="consoleSql" />
+  </logger>
+
+  <logger name="nybatis.batch" level="info" additivity="false">
+    <appender-ref ref="consoleSql" />
+  </logger>
+
+</configuration>

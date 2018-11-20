@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapper xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:nybatis.mapper:1.2" xsi:schemaLocation="urn:nybatis.mapper:1.2 http://nybatis.github.io/schema/nybatis-mapper.xsd">
+
+  <sql id="getClassReport">
+    SELECT  /*+ Report.getClassReport */
+            project_id,
+            complete_date,
+            biz_id,
+            biz_name,
+            loc,
+            class_cnt,
+            field_cnt,
+            constructor_cnt,
+            method_cnt,
+            method_cnt_isolated,
+            called_cnt,
+            called_cnt_isolated,
+            call_cnt,
+            call_cnt_isolated,
+            total_complexity,
+            average_complexity,
+            sql_cnt
+    FROM    TB_REPORT_CLASS
+    WHERE   project_id = #{projectId}
+    <if test="#{retrieveLastOnly} == true">
+    AND     complete_date = ( SELECT MAX(complete_date) AS complete_date FROM TB_REPORT_CLASS WHERE project_id = #{projectId} )
+    </if>
+    ORDER BY project_id, complete_date, biz_id
+  </sql>
+  
+  <sql id="getChainReport">
+    SELECT  /*+ Report.getChainReport */
+            project_id,
+            complete_date,
+            biz_id,
+            biz_name,
+            chain_type,
+            isolated,
+            loc,
+            chain_cnt,
+            call_cnt,
+            caller_cnt
+    FROM    TB_REPORT_ISOLATED
+    WHERE   project_id = #{projectId}
+    <if test="#{retrieveLastOnly} == true">
+    AND     complete_date = ( SELECT MAX(complete_date) AS complete_date FROM TB_REPORT_ISOLATED WHERE project_id = #{projectId} )
+    </if>
+    ORDER BY project_id, complete_date, biz_id, chain_type, isolated
+  </sql>
+
+  <sql id="getComplexityReport">
+    SELECT  /*+ Report.getComplexityReport */
+            project_id,
+            complete_date,
+            biz_id,
+            biz_name,
+            scale010,
+            scale020,
+            scale030,
+            scale040,
+            scale050,
+            scale060,
+            scale070,
+            scale080,
+            scale090,
+            scale100,
+            scale110,
+            scale120,
+            scale130,
+            scale140,
+            scale150,
+            scale160,
+            scale170,
+            scale180,
+            scale190,
+            scale200,
+            scale999
+    FROM    TB_REPORT_COMPLEX
+    WHERE   project_id = #{projectId}
+    <if test="#{retrieveLastOnly} == true">
+    AND     complete_date = ( SELECT MAX(complete_date) AS complete_date FROM TB_REPORT_ISOLATED WHERE project_id = #{projectId} )
+    </if>
+    ORDER BY project_id, complete_date, biz_id
+  </sql>
+
+    <sql id="getRecycleReport">
+        SELECT  /*+ Report.getRecycleReport */
+        project_id,
+        complete_date,
+        biz_id,
+        biz_name,
+        loc_total,
+        loc_unique,
+        recycle_ratio
+        FROM    TB_REPORT_RECYCLE
+        WHERE   project_id = #{projectId}
+        <if test="#{retrieveLastOnly} == true">
+            AND     complete_date = ( SELECT MAX(complete_date) AS complete_date FROM TB_REPORT_RECYCLE WHERE project_id = #{projectId} )
+        </if>
+        ORDER BY project_id, complete_date, biz_id
+    </sql>
+
+    <sql id="getDbResourceReport">
+        SELECT  /*+ Report.getDbResourceReport */
+            project_id
+            , complete_date
+            , biz_id
+            , biz_name
+            , table_cnt
+            , view_cnt
+            , sequence_cnt
+            , procedure_cnt
+            , function_cnt
+            , package_cnt
+            , trigger_cnt
+        FROM    TB_REPORT_DB_RESOURCE
+        WHERE   project_id = #{projectId}
+        <if test="#{retrieveLastOnly} == true">
+            AND     complete_date = ( SELECT MAX(complete_date) AS complete_date FROM TB_REPORT_RECYCLE WHERE project_id = #{projectId} )
+        </if>
+        ORDER BY project_id, complete_date, biz_id
+    </sql>
+</mapper>

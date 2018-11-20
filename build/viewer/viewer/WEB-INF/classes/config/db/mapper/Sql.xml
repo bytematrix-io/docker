@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapper xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:nybatis.mapper:1.2" xsi:schemaLocation="urn:nybatis.mapper:1.2 http://nybatis.github.io/schema/nybatis-mapper.xsd">
+
+  <sql id="find">
+    SELECT  /*+ Sql.find */
+            A.project_id,
+            ( SELECT name FROM TB_PROJECT WHERE project_id = A.project_id )
+                        AS project_nm,
+            A.complete_date,
+            A.chain_id,
+            A.sql_id,
+            A.file_name,
+            <if test="#{export} == true">
+            A.sql,
+            A.db_resources,
+            </if>
+            A.used_yn,
+            A.biz_id,
+            A.sql_type,
+            ( SELECT biz_name FROM TB_RULE_BIZ_CHAIN WHERE biz_id = A.biz_id )
+                        AS biz_name
+    FROM    TB_SQL         A
+    JOIN    TB_PROJECT     C
+            ON( A.project_id = C.project_id )
+    WHERE   EXISTS (
+            SELECT  1
+            FROM    TB_BATCH_COMPT
+            WHERE   project_id = A.project_id AND complete_date = A.complete_date
+    )
+    <if test="#{projectId} != empty">
+      AND   A.project_id IN ( #{projectId} )
+    </if>
+    <if test="#{bizId} != empty">
+      AND   A.biz_id IN ( #{bizId} )
+    </if>
+    <if test="#{sqlType} != empty">
+      AND   A.sql_type IN ( #{sqlType} )
+    </if>
+    <if test="#{sqlId.dynamicSql} != empty">
+      AND ( ${sqlId.dynamicSql} )
+    </if>
+    <if test="#{fileName.dynamicSql} != empty">
+      AND ( ${fileName.dynamicSql} )
+    </if>
+    <if test="#{sqlText.dynamicSql} != empty">
+      AND ( ${sqlText.dynamicSql} )
+    </if>
+    <if test="#{sqlIndex.dynamicSql} != empty">
+      AND ( ${sqlIndex.dynamicSql} )
+    </if>
+    ORDER BY project_id, sql_id, file_name
+  </sql>
+
+</mapper>
