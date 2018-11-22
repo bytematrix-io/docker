@@ -1,7 +1,30 @@
 #!/bin/bash
 
+CMD_NAME=${0##*/}
+
+usage() {
+    cat << USAGE >&2
+Usage:
+   $CMD_NAME [rootDirectory] [options]
+
+   1. rootDirectory (optional)
+      default value is current directory.
+
+   2. options
+      -all           analyze all projects
+      -class <arg>   read class or all classes in path
+      -h             show help
+      -p <arg>       project id to analyze
+      -show          show "project id" list
+      -sql <arg>     query SQL from ByteMatrix's database
+USAGE
+    exit 1
+}
+
 # Set PATH_LOCAL_ROOT
-if [ `expr substr $1 1 1` == "-" ]; then
+if [[ $# == 0 ]]; then
+	usage
+elif [ `expr substr $1 1 1` == "-" ]; then
 	PATH_LOCAL_ROOT=$(pwd)
 	JAVA_OPTION=$@
 else
