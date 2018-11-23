@@ -1,5 +1,5 @@
 # ByteMatrix for Docker
-Docker install script for ByteMatrix
+Docker install guide for ByteMatrix
 
 ## Getting Started
 
