@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:nybatis.configuration:1.4" xsi:schemaLocation="urn:nybatis.configuration:1.4 http://nybatis.github.io/schema/nybatis-config.xsd">
+  <environment id="default">
+    <datasourceJdbc>
+      <driver>org.mariadb.jdbc.Driver</driver>
+      <url>jdbc:mariadb://10.202.66.244:3306/bytematrix</url>
+      <username>bytematrix</username>
+      <password>bytematrix</password>
+    </datasourceJdbc>
+    <sqlPath>
+      <path>./mapper</path>
+    </sqlPath>
+  </environment>
+</configuration>
