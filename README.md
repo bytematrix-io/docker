@@ -34,6 +34,7 @@ Docker install guide for ByteMatrix
      ```bash
      sudo chown :docker /usr/local/bin/docker-compose
      sudo usermod -aG docker $USER
+     sudo service docker restart
      ```
 
   c. add link to Docker repository
