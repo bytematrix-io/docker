@@ -4,7 +4,7 @@ Docker install guide for ByteMatrix
 
 # Getting Started
 
-### 1. Install docker.
+### 1. Install docker
 
   ```bash
   curl -sSL https://get.docker.com/ | sh 
