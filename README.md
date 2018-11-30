@@ -1,9 +1,10 @@
-# ByteMatrix for Docker
+ByteMatrix for Docker
+=====================
 Docker install guide for ByteMatrix
 
-## Getting Started
+# Getting Started
 
-1. Install docker.
+### 1. Install docker.
 
     ```bash
     curl -sSL https://get.docker.com/ | sh 
@@ -11,61 +12,62 @@ Docker install guide for ByteMatrix
     or
     ```bash
     wget -qO- https://get.docker.com/ | sh
-    ```    
+    ```
 
-    detail guide
+  - detail guide
 
-        a. [AWS](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/docker-basics.html#install_docker)
-        b. [Mac or Windows](https://www.docker.com/get-started)
+    a. [AWS](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/docker-basics.html#install_docker)
 
-2. Install ByteMatrix
+    b. [Mac or Windows](https://www.docker.com/get-started)
 
-    a. Get script **docker-compose.yml**
+### 2. Install ByteMatrix
+
+  a. Get script **docker-compose.yml**
   
-    ```bash
-    wget -O docker-compose.yml https://raw.githubusercontent.com/bytematrix-io/docker/master/docker-compose.yml
-    ```  
+  ```bash
+  wget -O docker-compose.yml https://raw.githubusercontent.com/bytematrix-io/docker/master/docker-compose.yml
+  ```  
    
-    b. Install ByteMatrix docker container.
+  b. Install ByteMatrix docker container.
 
-    ```bash
-    docker-compose up -d
-    ```
+  ```bash
+  docker-compose up -d
+  ```
 
-    c. Check out docker container up to normally.
+  c. Check out docker container up to normally.
 
-    ```bash
-    docker ps -a
-    ```
+  ```bash
+  docker ps -a
+  ```
  
-    ```
-    CONTAINER ID        IMAGE                COMMAND                  CREATED             STATUS     PORTS                    NAMES
-    bf539d160701        bytematrix/viewer    "/bin/sh -c 'java -j…"   2 hours ago        ...        0.0.0.0:8080->8080/tcp   bm-viewer
-    817ce3ede4f3        bytematrix/mariadb   "docker-entrypoint.s…"   2 hours ago        ...        0.0.0.0:3306->3306/tcp   bm-db
-    ```
+  ```
+  CONTAINER ID        IMAGE                COMMAND                  CREATED             STATUS     PORTS                    NAMES
+  bf539d160701        bytematrix/viewer    "/bin/sh -c 'java -j…"   2 hours ago        ...        0.0.0.0:8080->8080/tcp   bm-viewer
+  817ce3ede4f3        bytematrix/mariadb   "docker-entrypoint.s…"   2 hours ago        ...        0.0.0.0:3306->3306/tcp   bm-db
+  ```
 
-3. Execute Crawler
+### 3. Execute Crawler
 
-   a. Send email to [contact@bytematrix.io](mailto:contact@bytematrix.io) and get **license.cert** file. <br>
-      ByteMatrix provides free license long enough to analyze your application for 2 months.
+ a. Send email to [contact@bytematrix.io](mailto:contact@bytematrix.io) and get **license.cert** file. <br>
+    ByteMatrix provides free license long enough to analyze your application for 2 months.
       
-   b. Put **license.cert** file into a directory.
+ b. Put **license.cert** file into a directory.
    
-   c. Get script
+ c. Get script
 
-       - Linux / Mac
+   - Linux / Mac
 
-        ```bash
-        wget -O run.bat https://raw.githubusercontent.com/bytematrix-io/docker/master/executor/crawler/run.sh
-        ```
+     ```bash
+     wget -O run.bat https://raw.githubusercontent.com/bytematrix-io/docker/master/executor/crawler/run.sh
+     ```
 
-       - Windows
+   - Windows
 
-        ```bash
-        wget -O run.bat https://raw.githubusercontent.com/bytematrix-io/docker/master/executor/crawler/run.bat
-        ```       
+     ```bash
+     wget -O run.bat https://raw.githubusercontent.com/bytematrix-io/docker/master/executor/crawler/run.bat
+     ```       
 
-   4. Execute crawler. 
+### 4. Execute crawler. 
       
       **show** command runs without error only if ByteMatrix DB connected properly and license is valid.
       
@@ -81,36 +83,40 @@ Docker install guide for ByteMatrix
         .\run.bat -show
         ```
    
-## How to maintain
+# How to maintain
 
-1. Update Application
+### 1. Update Application
 
-    a. Pull newer images
+  a. Pull newer images
+
     ```bash
     sudo docker-compose pull
     docker pull bytematrix/crawler
     ```
 
-    b. Restart container
+  b. Restart container
+
     ```bash
     sudo docker-compose up -d --force-recreate --no-deps bm-viewer
     ```
 
-2. Check Application log
+### 2. Check Application log
 
-    **ByteMatrix Viewer** log file is stacked in docker container. so you can check it like below.
+  **ByteMatrix Viewer** log file is stacked in docker container. so you can check it like below.
 
-    a. Connect to **ByteMatrix Viewer** container.
+  a. Connect to **ByteMatrix Viewer** container.
+
     ```bash
     sudo docker exec -it bm-viewer /bin/bash
     ```
 
-    b. tail log.
+  b. tail log.
+
     ```bash
     tail -f /app/viewer/log/*.log
     ```
 
-## Control memory limitation
+# Control memory limitation
 
 Docker limit memory to 2048 kb in default.
 
@@ -123,7 +129,7 @@ VBoxManage modifyvm default --memory 4096
 docker-machine start
 ```
 
-## Configuration
+# Configuration
 
 ### Change PORT
 
