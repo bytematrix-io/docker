@@ -37,6 +37,8 @@ Docker install guide for ByteMatrix
      sudo service docker restart
      ```
 
+     and **logout** and **login** again 
+
   c. add link to Docker repository
   ```bash
   sudo apt update
