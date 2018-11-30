@@ -4,7 +4,9 @@ Docker install guide for ByteMatrix
 
 # Getting Started
 
-### 1. Install docker
+### 1. Install Docker
+
+  a. Docker
 
   ```bash
   curl -sSL https://get.docker.com/ | sh 
@@ -18,9 +20,13 @@ Docker install guide for ByteMatrix
 
   - detail guide
 
-    a. [AWS](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/docker-basics.html#install_docker)
+    + [AWS](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/docker-basics.html#install_docker)
 
-    b. [Mac or Windows](https://www.docker.com/get-started)
+    + [Mac or Windows](https://www.docker.com/get-started)
+
+  b. Docker Compose
+  
+   - [Guide](https://docs.docker.com/compose/install/)
 
 ### 2. Install ByteMatrix
 
