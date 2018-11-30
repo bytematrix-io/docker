@@ -43,8 +43,8 @@ if [ -e ./config.xml ]; then
 	MOUNT_DB_CONF="--mount type=bind,source="$(pwd)/config.xml",target=/app/crawler/config/db/config.xml"
 	CONF_NETWORK=
 else
-	MOUNT_DB_CONF=
-	CONF_NETWORK="--network=bytematrix_local"
+    MOUNT_DB_CONF=
+    CONF_NETWORK="--network=$(docker inspect -f '{{range $key, $val := .NetworkSettings.Networks}}{{$key}}{{end}}' bm-db)"
 fi
 
 command="docker run -i --rm $CONF_NETWORK $MOUNT_CERT $MOUNT_ROOT $MOUNT_DB_CONF $ENV_LOCAL_ROOT bytematrix/crawler java -jar ./ByteMatrixCrawler.jar $JAVA_OPTION"
