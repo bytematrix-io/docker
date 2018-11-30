@@ -12,7 +12,9 @@ Docker install guide for ByteMatrix
     ```bash
     wget -qO- https://get.docker.com/ | sh
     ```    
-    - detail guide
+
+    detail guide
+
         a. [AWS](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/docker-basics.html#install_docker)
         b. [Mac or Windows](https://www.docker.com/get-started)
 
