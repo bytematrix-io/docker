@@ -28,6 +28,13 @@ Docker install guide for ByteMatrix
   
    - [Guide](https://docs.docker.com/compose/install/)
 
+     **note**
+     installed **docker-compose** is owned to root. you run it through **sudo** or change group.
+     ```bash
+     sudo chown :docker /usr/local/bin/docker-compose
+     sudo usermod -aG docker $USER
+     ```
+
   c. add link to Docker repository
   ```bash
   sudo apt update
